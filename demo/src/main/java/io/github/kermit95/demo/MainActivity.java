@@ -1,6 +1,7 @@
 package io.github.kermit95.demo;
 
 import android.os.Bundle;
+import android.provider.Contacts;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.ViewGroup;
@@ -36,29 +37,31 @@ public class MainActivity extends AppCompatActivity {
         taskParam.put(1, new String("Hello, World!"));
         executer.setParams(taskParam);
 
-        taskQueue
-                .add(new Task(Task.ThreadMode.BACKGROUND_THREAD) {
-                    @Override
-                    public TaskParam onExecute(TaskParam param) {
-                        Log.d(TAG, "onExecute: background thread!");
-                        return param;
-                    }
-                })
-                .add(new Task(Task.ThreadMode.UI_THREAD) {
-                    @Override
-                    public TaskParam onExecute(TaskParam param) {
-                        updateUI();
-                        return param;
-                    }
-                })
-                .add(new Task(Task.ThreadMode.UI_THREAD) {
-                    @Override
-                    public TaskParam onExecute(TaskParam param) {
-                        Toast.makeText(MainActivity.this, (String) param.get(1), Toast.LENGTH_SHORT).show();
-                        return null;
-                    }
-                });
+        Task task1 = new Task(Task.ThreadMode.BACKGROUND_THREAD) {
+            @Override
+            public TaskParam onExecute(TaskParam param) {
+                Log.d(TAG, "onExecute: background thread!");
+                return param;
+            }
+        };
 
+        Task task2 = new Task(Task.ThreadMode.UI_THREAD) {
+            @Override
+            public TaskParam onExecute(TaskParam param) {
+                updateUI();
+                return param;
+            }
+        };
+
+        Task task3 = new Task(Task.ThreadMode.UI_THREAD) {
+            @Override
+            public TaskParam onExecute(TaskParam param) {
+                Toast.makeText(MainActivity.this, (String) param.get(1), Toast.LENGTH_SHORT).show();
+                return null;
+            }
+        };
+
+        taskQueue.add(task1).add(task2).add(task3);
         executer.execute();
 
         //demo end
