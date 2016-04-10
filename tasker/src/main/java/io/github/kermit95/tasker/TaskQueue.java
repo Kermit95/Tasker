@@ -13,49 +13,46 @@ public class TaskQueue {
     /**
      * TaskQueue and HandlerThread share a same name;
      */
-    private String name;
-    private Queue<Task> mTaskQueue;
+    private final Queue<Task> mWorkQueue;
 
 
     /**
-     * Initialize task queue.
-     * @param name the name of the TaskQueue
+     * TaskExecuter
      */
-    TaskQueue(String name){
-        mTaskQueue = new ArrayDeque<>();
-        this.name = name;
+    private final TaskExecuter mExecuter;
+
+
+    public TaskQueue(TaskParam taskParam){
+        mWorkQueue = new ArrayDeque<>();
+        mExecuter = new TaskExecuter(mWorkQueue, taskParam);
     }
 
-    public boolean offer(Task task){
-        return mTaskQueue.offer(task);
-    }
-
-    public Task poll(){
-        return mTaskQueue.poll();
-    }
-
-    public boolean isEmpty(){
-        return mTaskQueue.isEmpty();
-    }
-
-    private static final Object mLock = new Object();
-    public TaskQueue add(@NonNull Task task) {
-        synchronized (mLock) {
-            task.setId(System.currentTimeMillis());
-            mTaskQueue.offer(task);
-        }
+    public TaskQueue next(@NonNull Task task) {
+        mWorkQueue.offer(task);
         return this;
     }
 
-    /**
-     * setter and getter
-     * @return
-     */
-    public String getName() {
-        return name;
+    public TaskQueue next(@NonNull final Func<TaskParam, TaskParam> func){
+        mWorkQueue.offer(new Task() {
+            @Override
+            public TaskParam onExecute(TaskParam param) {
+                return func.call(param);
+            }
+        });
+        return this;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public TaskQueue nextThread(@NonNull Task.ThreadMode thread){
+        mWorkQueue.element().setThreadMode(thread);
+        return this;
+    }
+
+    public TaskQueue param(@NonNull TaskParam taskParam){
+        mExecuter.setParams(taskParam);
+        return this;
+    }
+
+    public void execute(){
+        mExecuter.execute();
     }
 }

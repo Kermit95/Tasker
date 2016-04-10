@@ -6,19 +6,28 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import java.util.Queue;
 
 /**
  * Created by kermit on 16/3/25.
  */
 public class TaskExecuter {
 
+    private static final String HANDLER_NAME= "DEFAULT_NAME";
+
     private static final int MESSAGE_UI_WORK = 0x01;
     private Task curTask;
-    private TaskQueue mTaskQueue;
+    private Queue<Task> mWorkQueue;
 
-    TaskExecuter(TaskQueue taskQueue) {
-        this.mTaskQueue = taskQueue;
-        mTaskParam = new TaskParam();
+    TaskExecuter(Queue<Task> workQueue, @Nullable TaskParam taskParam) {
+        this.mWorkQueue = workQueue;
+        this.mTaskParam = taskParam;
+    }
+
+    TaskExecuter(Queue<Task> workQueue){
+        this(workQueue, null);
     }
 
     private Status mStatus = Status.FINISHED;
@@ -47,7 +56,7 @@ public class TaskExecuter {
      */
     public void execute(){
 
-        if (mTaskQueue.isEmpty()){
+        if (mWorkQueue.isEmpty()){
             stopThread();
             mStatus = Status.FINISHED;
             return;
@@ -61,13 +70,14 @@ public class TaskExecuter {
         threadHandler.post(new Runnable() {
             @Override
             public void run() {
+                // have checked the mWorkQueue not empty.
                 doInHandlerThread();
             }
         });
     }
 
     private void doInHandlerThread(){
-        curTask = mTaskQueue.poll();
+        curTask = mWorkQueue.poll();
         switch (curTask.getThreadMode()){
             case UI_THREAD:
                 Message message = uiHandler.obtainMessage();
@@ -88,7 +98,11 @@ public class TaskExecuter {
      */
     private void executeTask(@NonNull Task task){
         task.setStatus(Task.Status.RUNNING);
-        mTaskParam = task.onExecute(mTaskParam);
+        if (mTaskParam != null){
+            mTaskParam = task.onExecute(mTaskParam);
+        }else{
+            // FIXME: 16/4/10 task
+        }
         task.setStatus(Task.Status.FINISHED);
     }
 
@@ -108,7 +122,7 @@ public class TaskExecuter {
      * Thread Control.
      */
     private void startThread(){
-        mHandlerThread = new HandlerThread(mTaskQueue.getName());
+        mHandlerThread = new HandlerThread(HANDLER_NAME);
         mHandlerThread.start();
         threadHandler = new Handler(mHandlerThread.getLooper());
     }

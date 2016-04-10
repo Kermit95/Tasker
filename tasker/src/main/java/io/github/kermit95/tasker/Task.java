@@ -3,14 +3,11 @@ package io.github.kermit95.tasker;
 /**
  * Created by kermit on 16/3/25.
  */
-public abstract class Task {
+public abstract class Task{
 
     /**
      * The info and status of the Task.
      */
-    private long id;
-
-    private String name;
 
     private boolean isCancelled;
 
@@ -28,13 +25,10 @@ public abstract class Task {
         UI_THREAD,
     }
 
+    public Task(){}
+
     public Task(ThreadMode threadMode){
         this.mThreadMode = threadMode;
-    }
-
-    public Task(long id, String name){
-        this.id = id;
-        this.name = name;
     }
 
     /**
@@ -43,22 +37,6 @@ public abstract class Task {
      * @return
      */
     public abstract TaskParam onExecute(TaskParam param);
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public boolean isCancelled() {
         return isCancelled;
