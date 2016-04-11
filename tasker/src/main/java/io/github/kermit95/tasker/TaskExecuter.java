@@ -19,15 +19,11 @@ public class TaskExecuter {
 
     private static final int MESSAGE_UI_WORK = 0x01;
     private Task curTask;
-    private Queue<Task> mWorkQueue;
+    private Queue<Task> mWorkFlow;
 
-    TaskExecuter(Queue<Task> workQueue, @Nullable TaskParam taskParam) {
-        this.mWorkQueue = workQueue;
+    TaskExecuter(Queue<Task> workFlow, @Nullable TaskParam taskParam) {
+        this.mWorkFlow = workFlow;
         this.mTaskParam = taskParam;
-    }
-
-    TaskExecuter(Queue<Task> workQueue){
-        this(workQueue, null);
     }
 
     private Status mStatus = Status.FINISHED;
@@ -51,16 +47,25 @@ public class TaskExecuter {
         }
     };
 
+
+    private boolean quit = false;
+    void setQuit(boolean quit){
+        this.quit = quit;
+    }
+
     /**
      * Start execute the task in the taskqueue.
      */
     public void execute(){
 
-        if (mWorkQueue.isEmpty()){
+        if (quit || mWorkFlow.isEmpty()){
             stopThread();
             mStatus = Status.FINISHED;
             return;
         }
+
+
+        curTask = mWorkFlow.poll();
 
         if (mStatus == Status.FINISHED){
             startThread();
@@ -70,14 +75,13 @@ public class TaskExecuter {
         threadHandler.post(new Runnable() {
             @Override
             public void run() {
-                // have checked the mWorkQueue not empty.
+                // have checked the mWorkFlow not empty.
                 doInHandlerThread();
             }
         });
     }
 
     private void doInHandlerThread(){
-        curTask = mWorkQueue.poll();
         switch (curTask.getThreadMode()){
             case UI_THREAD:
                 Message message = uiHandler.obtainMessage();
@@ -91,29 +95,24 @@ public class TaskExecuter {
         }
     }
 
-    private TaskParam mTaskParam;
+    private TaskParam mTaskParam = null;
     /**
      * execute a single task.
      * @param task
      */
-    private void executeTask(@NonNull Task task){
+    private void executeTask(@NonNull Task task) {
         task.setStatus(Task.Status.RUNNING);
-        if (mTaskParam != null){
+
+        if (task.isCompose()) {
             mTaskParam = task.onExecute(mTaskParam);
-        }else{
-            // FIXME: 16/4/10 task
+        }else {
+            task.onExecute(null);
         }
+
         task.setStatus(Task.Status.FINISHED);
+
     }
 
-
-    public TaskParam getParam() {
-        return mTaskParam;
-    }
-
-    public void setParams(TaskParam taskParam) {
-        mTaskParam = taskParam;
-    }
 
     private Handler threadHandler;
     private HandlerThread mHandlerThread;

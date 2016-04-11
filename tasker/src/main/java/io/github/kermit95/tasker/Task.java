@@ -15,6 +15,10 @@ public abstract class Task{
 
     private ThreadMode mThreadMode = ThreadMode.UI_THREAD;
 
+    private TaskParam mTaskParam;
+
+    private boolean compose = false;
+
     public enum Status{
         RUNNING,
         FINISHED,
@@ -28,7 +32,16 @@ public abstract class Task{
     public Task(){}
 
     public Task(ThreadMode threadMode){
+        this(threadMode, null);
+    }
+
+    public Task(TaskParam taskParam){
+        this(null, taskParam);
+    }
+
+    public Task(ThreadMode threadMode, TaskParam taskParam){
         this.mThreadMode = threadMode;
+        this.mTaskParam = taskParam;
     }
 
     /**
@@ -36,7 +49,7 @@ public abstract class Task{
      * @param param
      * @return
      */
-    public abstract TaskParam onExecute(TaskParam param);
+    protected abstract TaskParam onExecute(TaskParam param);
 
     public boolean isCancelled() {
         return isCancelled;
@@ -60,5 +73,21 @@ public abstract class Task{
 
     public void setThreadMode(ThreadMode threadMode) {
         mThreadMode = threadMode;
+    }
+
+    public TaskParam getTaskParam() {
+        return mTaskParam;
+    }
+
+    public void setTaskParam(TaskParam taskParam) {
+        mTaskParam = taskParam;
+    }
+
+    public boolean isCompose() {
+        return compose;
+    }
+
+    public void setCompose(boolean compose) {
+        this.compose = compose;
     }
 }

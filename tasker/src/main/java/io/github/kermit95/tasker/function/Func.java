@@ -1,4 +1,4 @@
-package io.github.kermit95.tasker;
+package io.github.kermit95.tasker.function;
 
 /**
  * Created by kermit on 16/4/10.
