@@ -23,6 +23,3 @@ new Tasker(new TaskParam(0, "-_-||", 1, ":P"))
         .next(taskParam -> step3(taskParam)).on(Task.ThreadMode.UI_THREAD)
         .execute();
 ```
-
-当然, 还是建议不要这样写, lambda本身就匿名函数, 重写一个方法没必要, 这里只是为了美观...
-
